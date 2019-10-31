@@ -1,0 +1,6 @@
+# By default ignore everything in this directory
+*
+# Except this particular file
+!.gitignore
+# To add more files, use git add --force
+

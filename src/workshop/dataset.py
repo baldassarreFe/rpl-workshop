@@ -32,7 +32,7 @@ def get_image_to_label_dict(img_class_labels_path):
     id_to_label = {}
     with open(img_class_labels_path, "r") as infile:
         for line in infile:
-            img_id, label = line.split().split()
+            img_id, label = line.strip().split()
             id_to_label[img_id] = label
     return id_to_label
 
@@ -42,7 +42,7 @@ class CUBDataset(Dataset):
         self.train_set = True if set_ == "train" else False
         self.transforms = transforms
 
-        root_directory = Path(root_directory)
+        root_directory = Path(root_directory).expanduser().resolve()
         train_test_split = root_directory / "train_test_split.txt"
         train_image_id_list, test_image_id_list = get_train_test_split(train_test_split)
 
@@ -51,6 +51,7 @@ class CUBDataset(Dataset):
 
         img_class_labels_path = root_directory / "image_class_labels.txt"
         id_to_label_dict = get_image_to_label_dict(img_class_labels_path)
+        self.number_classes = len(set(id_to_label_dict.values()))
 
         self.image_dir = root_directory/"images"
         if self.train_set:
@@ -64,7 +65,7 @@ class CUBDataset(Dataset):
     def __getitem__(self, idx):
         path, lbl = self.img_list[idx]
         full_path = self.image_dir/path
-        img = Image.open(full_path)
+        img = Image.open(full_path).convert("RGB")
         if self.transforms:
             img = self.transforms(img)
-        return img, lbl
+        return img, int(lbl) - 1

@@ -78,6 +78,7 @@ dependencies:
   - tk=8.6.8=hbc83047_0
   - torchvision=0.4.1=py37_cu101
   - tornado=6.0.3=py37h7b6447c_0
+  - tqdm=4.36.1=py_0
   - traitlets=4.3.3=py37_0
   - wcwidth=0.1.7=py37_0
   - wheel=0.33.6=py37_0

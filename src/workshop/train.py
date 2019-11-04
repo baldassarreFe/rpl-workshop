@@ -14,7 +14,8 @@ from time import time
 from torch.utils.tensorboard import SummaryWriter
 
 from workshop.model import BirdNet
-import yaml
+import pyaml
+
 
 class AverageMeter(object):
     def __init__(self):
@@ -97,6 +98,7 @@ def train(args):
 
         # Training
         model.train()
+        torch.set_grad_enabled(True)
         batch_bar = tqdm.tqdm(data_loader_tr, desc='Batch')
         meter_loss.reset()
         meter_accuracy.reset()
@@ -125,6 +127,7 @@ def train(args):
 
         # Validation
         model.eval()
+        torch.set_grad_enabled(False)
         batch_bar = tqdm.tqdm(data_loader_val, desc='Batch')
         meter_loss.reset()
         meter_accuracy.reset()
@@ -166,7 +169,7 @@ if __name__ == '__main__':
 
     project_path = Path(__file__).parents[2]
     random_hash = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    args.logdir = project_path/"runs"/f"bs:{args.batch_size}_lr:{args.learning_rate}_wd:{args.weight_decay}_{random_hash}"
+    args.logdir = project_path/"runs"/f"bs{args.batch_size}_lr{args.learning_rate}_wd{args.weight_decay}_{random_hash}"
 
     metric_dictionary = train(args)
 
@@ -174,7 +177,4 @@ if __name__ == '__main__':
     final_log_dictionary = {"config": config,
                             "results": metric_dictionary}
     with open(args.logdir/"final_results.yaml", "w") as outfile:
-        yaml.dump(final_log_dictionary, outfile)
-
-
-
+        pyaml.dump(final_log_dictionary, outfile)

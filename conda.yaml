@@ -97,6 +97,7 @@ dependencies:
     - markdown==3.1.1
     - oauthlib==3.1.0
     - protobuf==3.10.0
+    - pyaml==19.4.1
     - pyasn1==0.4.7
     - pyasn1-modules==0.2.7
     - pyyaml==5.1.2

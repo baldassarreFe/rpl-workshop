@@ -1,3 +1,6 @@
+import random
+import string
+
 from workshop.dataset import CUBDataset
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, RandomCrop, CenterCrop, RandomHorizontalFlip, ToTensor
@@ -5,13 +8,47 @@ import argparse
 from pathlib import Path
 from torch.optim import Adam
 import torch.nn.functional as F
+import torch
 import tqdm
+from time import time
+from torch.utils.tensorboard import SummaryWriter
 
 from workshop.model import BirdNet
+import yaml
+
+class AverageMeter(object):
+    def __init__(self):
+        self.value = 0
+        self.average = 0
+        self.sum = 0
+        self.count = 0
+
+    def reset(self):
+        self.value = 0
+        self.average = 0
+        self.sum = 0
+        self.count = 0
+
+    def get_average(self):
+        if isinstance(self.average, torch.Tensor):
+            return float(self.average.cpu().detach())
+        return self.average
+
+    def update(self, value, num):
+        self.value = value
+        self.sum += value * num
+        self.count += num
+        self.average = self.sum / self.count
+
+    def __repr__(self):
+        return f"{self.get_average():.4f}"
 
 
 def train(args):
-    dataset = CUBDataset(
+    writer = SummaryWriter(log_dir=args.logdir)
+
+    # Datasets
+    dataset_tr = CUBDataset(
         root_directory=args.datapath,
         set_="train",
         transforms=Compose([
@@ -20,31 +57,100 @@ def train(args):
             ToTensor()
         ])
     )
-    data_loader = DataLoader(
-        dataset,
+    data_loader_tr = DataLoader(
+        dataset_tr,
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.number_workers)
 
-    model = BirdNet(num_classes=dataset.number_classes).to(args.device)
+    dataset_val = CUBDataset(
+        root_directory=args.datapath,
+        set_="val",
+        transforms=Compose([
+            CenterCrop(224),
+            ToTensor()
+        ])
+    )
+    data_loader_val = DataLoader(
+        dataset_val,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.number_workers)
 
+    # Model
+    model = BirdNet(num_classes=dataset_tr.number_classes).to(args.device)
+
+    # Optimizer
     optimizer = Adam(
-        params=model.classifier.parameters(),
+        params=model.classifier.parameters(),   # Optimize only the classifier layer
         lr=args.learning_rate,
         weight_decay=args.weight_decay)
 
+    # Meters
+    meter_loss = AverageMeter()
+    meter_accuracy = AverageMeter()
+    train_accuracy, train_loss, val_accuracy, val_loss = 0,0,0,0
+
     epoch_bar = tqdm.trange(args.number_epochs, desc='Epoch')
     for epoch in epoch_bar:
-        batch_bar = tqdm.tqdm(data_loader, desc='Batch')
+        epoch_start_time = time()
+
+        # Training
+        model.train()
+        batch_bar = tqdm.tqdm(data_loader_tr, desc='Batch')
+        meter_loss.reset()
+        meter_accuracy.reset()
         for batch in batch_bar:
             input_batch = batch[0].to(args.device)
             target = batch[1].to(args.device)
-            predictions = model(input_batch)
-            loss = F.cross_entropy(predictions, target)
+            logits = model(input_batch)
+
+            number_samples = target.shape[0]
+            predictions = logits.argmax(dim=1)
+            accuracy = (predictions == target).float().sum()/number_samples
+            loss = F.cross_entropy(logits, target)
+            meter_accuracy.update(accuracy, number_samples)
+            meter_loss.update(loss, number_samples)
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            batch_bar.set_postfix({'loss': loss.item()})
+            # batch_bar.set_postfix({'loss': loss.item()})
+
+        train_accuracy, train_loss = meter_accuracy.get_average(), meter_loss.get_average()
+        epoch_bar.set_postfix({"loss": train_loss,
+                               "accuracy": train_accuracy})
+        writer.add_scalar("/train/loss", train_loss, epoch)
+        writer.add_scalar("/train/accuracy", train_accuracy, epoch)
+
+        # Validation
+        model.eval()
+        batch_bar = tqdm.tqdm(data_loader_val, desc='Batch')
+        meter_loss.reset()
+        meter_accuracy.reset()
+        for batch in batch_bar:
+            input_batch = batch[0].to(args.device)
+            target = batch[1].to(args.device)
+            logits = model(input_batch)
+
+            number_samples = target.shape[0]
+            predictions = logits.argmax(dim=1)
+            accuracy = (predictions == target).float().sum()/number_samples
+            loss = F.cross_entropy(logits, target)
+            meter_accuracy.update(accuracy, number_samples)
+            meter_loss.update(loss, number_samples)
+
+        val_accuracy, val_loss = meter_accuracy.get_average(), meter_loss.get_average()
+        epoch_time = time()-epoch_start_time
+
+        epoch_bar.set_postfix({"loss": val_loss,
+                               "accuracy": val_accuracy})
+        writer.add_scalar("/validation/loss", val_loss, epoch)
+        writer.add_scalar("/validation/accuracy", val_accuracy, epoch)
+        writer.add_scalar("time_per_epoch", epoch_time, epoch)
+
+    return {"train": {"accuracy": train_accuracy, "loss": train_loss},
+            "validation": {"accuracy": val_accuracy, "loss": val_loss}}
 
 
 if __name__ == '__main__':
@@ -58,4 +164,17 @@ if __name__ == '__main__':
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 
-    train(args)
+    project_path = Path(__file__).parents[2]
+    random_hash = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    args.logdir = project_path/"runs"/f"bs:{args.batch_size}_lr:{args.learning_rate}_wd:{args.weight_decay}_{random_hash}"
+
+    metric_dictionary = train(args)
+
+    config = vars(args)
+    final_log_dictionary = {"config": config,
+                            "results": metric_dictionary}
+    with open(args.logdir/"final_results.yaml", "w") as outfile:
+        yaml.dump(final_log_dictionary, outfile)
+
+
+

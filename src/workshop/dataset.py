@@ -10,7 +10,7 @@ def get_train_test_split(train_test_split_path):
     with open(train_test_split_path, "r") as infile:
         for line in infile:
             img_id, is_train_image = line.strip().split()
-            if is_train_image:
+            if int(is_train_image):
                 train_image_id_list.append(img_id)
             else:
                 test_image_id_list.append(img_id)

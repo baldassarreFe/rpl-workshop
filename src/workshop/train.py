@@ -3,7 +3,7 @@ import string
 
 from workshop.dataset import CUBDataset
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, RandomCrop, CenterCrop, RandomHorizontalFlip, ToTensor
+from torchvision.transforms import Compose, RandomCrop, CenterCrop, RandomHorizontalFlip, ToTensor, Resize
 import argparse
 from pathlib import Path
 from torch.optim import Adam
@@ -53,6 +53,7 @@ def train(args):
         root_directory=args.datapath,
         set_="train",
         transforms=Compose([
+            Resize(256),
             RandomCrop((224, 224), pad_if_needed=True),
             RandomHorizontalFlip(),
             ToTensor()
@@ -152,6 +153,7 @@ def train(args):
         writer.add_scalar("/validation/accuracy", val_accuracy, epoch)
         writer.add_scalar("time_per_epoch", epoch_time, epoch)
 
+    torch.save(model.state_dict(), str(args.logdir/"final_model.pt"))
     return {"train": {"accuracy": train_accuracy, "loss": train_loss},
             "validation": {"accuracy": val_accuracy, "loss": val_loss}}
 

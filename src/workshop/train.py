@@ -50,8 +50,8 @@ def train(args):
 
     # Datasets
     dataset_tr = CUBDataset(
-        root_directory=args.datapath,
-        set_="train",
+        root=args.datapath,
+        train=True,
         transforms=Compose([
             Resize(256),
             RandomCrop((224, 224), pad_if_needed=True),
@@ -66,8 +66,8 @@ def train(args):
         num_workers=args.number_workers)
 
     dataset_val = CUBDataset(
-        root_directory=args.datapath,
-        set_="val",
+        root=args.datapath,
+        train=False,
         transforms=Compose([
             CenterCrop(224),
             ToTensor()

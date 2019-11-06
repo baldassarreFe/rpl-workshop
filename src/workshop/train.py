@@ -153,7 +153,7 @@ def train(args):
         writer.add_scalar("/validation/accuracy", val_accuracy, epoch)
         writer.add_scalar("time_per_epoch", epoch_time, epoch)
 
-    torch.save(model.state_dict(), str(args.logdir/"final_model.pt"))
+    torch.save(model.classifier.state_dict(), str(args.logdir / "final_model.pt"))
     return {"train": {"accuracy": train_accuracy, "loss": train_loss},
             "validation": {"accuracy": val_accuracy, "loss": val_loss}}
 

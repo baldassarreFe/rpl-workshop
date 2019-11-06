@@ -1,71 +1,70 @@
+from typing import Union, List, overload
 from pathlib import Path
-from torch.utils.data import Dataset
+
+import numpy as np
+import pandas as pd
 from PIL import Image
-
-
-def get_train_test_split(train_test_split_path):
-    """Reads train_test_split.txt in CUB_20 dataset and returns lists with train/test image id"""
-    train_image_id_list = []
-    test_image_id_list = []
-    with open(train_test_split_path, "r") as infile:
-        for line in infile:
-            img_id, is_train_image = line.strip().split()
-            if int(is_train_image):
-                train_image_id_list.append(img_id)
-            else:
-                test_image_id_list.append(img_id)
-    return train_image_id_list, test_image_id_list
-
-
-def get_id_to_image_path_dict(images_file_path):
-    """Reads images.txt in CUB_20 dataset and returns a dictionary of key=image_id, value=image_path"""
-    id_to_path_dict = {}
-    with open(images_file_path, "r") as infile:
-        for line in infile:
-            img_id, img_path = line.strip().split()
-            id_to_path_dict[img_id] = img_path
-    return id_to_path_dict
-
-
-def get_image_to_label_dict(img_class_labels_path):
-    """Reads image_class_labels.txt in CUB_20 dataset and returns a dictionary of key=image_is, value=label"""
-    id_to_label = {}
-    with open(img_class_labels_path, "r") as infile:
-        for line in infile:
-            img_id, label = line.strip().split()
-            id_to_label[img_id] = label
-    return id_to_label
+from torch.utils.data import Dataset
 
 
 class CUBDataset(Dataset):
-    def __init__(self, root_directory, set_, transforms=None):
-        self.train_set = True if set_ == "train" else False
+    dtype_split = pd.CategoricalDtype(categories=['train', 'test'])
+
+    def __init__(self, root: Union[str, Path], train: bool, transforms=None):
+        self.split = 'train' if train else 'test'
         self.transforms = transforms
+        root = Path(root).expanduser().resolve()
 
-        root_directory = Path(root_directory).expanduser().resolve()
-        train_test_split = root_directory / "train_test_split.txt"
-        train_image_id_list, test_image_id_list = get_train_test_split(train_test_split)
+        # Image id to image path
+        df_paths = pd.read_csv(root / 'images.txt',
+                               sep=' ', names=['id', 'path'], header=None, index_col=0)
+        df_paths['path'] = df_paths['path'].apply(root.joinpath('images').joinpath)
 
-        images_file_path = root_directory / "images.txt"
-        id_to_path_dict = get_id_to_image_path_dict(images_file_path)
+        # Class label (zero-based) to class name
+        df_classes = pd.read_csv(root / 'classes.txt',
+                                 sep=' ', names=['label', 'name'], header=None, index_col=0)
+        df_classes.index = df_classes.index - 1
+        self.classes = df_classes['name']
+        self.number_classes = len(self.classes)
 
-        img_class_labels_path = root_directory / "image_class_labels.txt"
-        id_to_label_dict = get_image_to_label_dict(img_class_labels_path)
-        self.number_classes = len(set(id_to_label_dict.values()))
+        # Image id to image label (zero-based)
+        df_labels = pd.read_csv(root / 'image_class_labels.txt',
+                                sep=' ', names=['id', 'label'], header=None, index_col=0)
+        df_labels['label'] = df_labels['label'] - 1
 
-        self.image_dir = root_directory/"images"
-        if self.train_set:
-            self.img_list = [(id_to_path_dict[x], id_to_label_dict[x]) for x in train_image_id_list]
-        else:
-            self.img_list = [(id_to_path_dict[x], id_to_label_dict[x]) for x in test_image_id_list]
+        # Image id to train/test split
+        df_split = pd.read_csv(root / 'train_test_split.txt',
+                               sep=' ', names=['id', 'split'], header=None, index_col=0)
+        df_split['split'] = df_split['split'].map({1: 'train', 0: 'test'}).astype(CUBDataset.dtype_split)
+
+        df = pd.merge(df_paths, df_labels, on='id')
+        df = pd.merge(df, df_split, on='id')
+        df = pd.merge(df, df_classes, on='label')
+        self.df = df.query(f'split=="{self.split}"')
 
     def __len__(self):
-        return len(self.img_list)
+        return len(self.df)
 
     def __getitem__(self, idx):
-        path, lbl = self.img_list[idx]
-        full_path = self.image_dir/path
-        img = Image.open(full_path).convert("RGB")
+        sample = self.df.iloc[idx]
+        img = Image.open(sample.path).convert("RGB")
         if self.transforms:
             img = self.transforms(img)
-        return img, int(lbl) - 1
+        return img, sample.label
+
+    @overload
+    def label_to_class_name(self, label: int) -> str: ...
+
+    @overload
+    def label_to_class_name(self, label: Union[List, np.ndarray]) -> List[str]: ...
+
+    def label_to_class_name(self, label):
+        """Convert zero-based class label(s) to class name(s)"""
+        result = self.classes.loc[label]
+        if isinstance(result, pd.Series):
+            return self.classes.loc[label].tolist()
+        else:
+            return result
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.split}, {len(self)} images)'

@@ -3,8 +3,10 @@
 SOURCE_PATH="${HOME}/rpl-workshop"
 RUNS_PATH="${HOME}/rpl-workshop/runs"
 DATA_PATH="/local_storage/datasets/CUB_20"
-SBATCH_OR_CAT=sbatch
-# SBATCH_OR_CAT=cat
+
+# Test the job before actually submitting
+SBATCH_OR_CAT=cat
+# SBATCH_OR_CAT=sbatch
 
 for learning_rate in .001 .01; do
 for weight_decay in .001 .00001; do
@@ -26,11 +28,8 @@ conda activate workshop
 
 nvidia-smi
 
-SOURCE_PATH="${HOME}/rpl-workshop"
-RUNS_PATH="${HOME}/rpl-workshop/runs"
-DATA_PATH="${HOME}/rpl-workshop/data"
-
 python -m workshop.train \
+    --runpath "${RUNS_PATH}" \
     --datapath "${DATA_PATH}" \
     --batch_size "${batch_size}" \
     --learning_rate "${learning_rate}" \

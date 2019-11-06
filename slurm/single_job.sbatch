@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 #SBATCH --output=/Midgard/home/%u/rpl-workshop/runs/%J_slurm.out
 #SBATCH --error=/Midgard/home/%u/rpl-workshop/runs/%J_slurm.err
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -19,6 +18,7 @@ RUNS_PATH="${HOME}/rpl-workshop/runs"
 DATA_PATH="/local_storage/datasets/CUB_20"
 
 python -m workshop.train \
+    --runpath "${RUNS_PATH}" \
     --datapath "${DATA_PATH}" \
     --batch_size 64 \
     --learning_rate .001 \

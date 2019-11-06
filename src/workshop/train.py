@@ -153,13 +153,14 @@ def train(args):
         writer.add_scalar("/validation/accuracy", val_accuracy, epoch)
         writer.add_scalar("time_per_epoch", epoch_time, epoch)
 
-    torch.save(model.state_dict(), str(args.logdir/"final_model.pt"))
+    torch.save(model.classifier.state_dict(), str(args.logdir / "final_model.pt"))
     return {"train": {"accuracy": train_accuracy, "loss": train_loss},
             "validation": {"accuracy": val_accuracy, "loss": val_loss}}
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument("--runpath", type=Path, required=True)
     parser.add_argument("--datapath", type=Path, required=True)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--learning_rate", type=float, required=True)
@@ -169,9 +170,8 @@ if __name__ == '__main__':
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 
-    project_path = Path(__file__).parents[2]
     random_hash = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    args.logdir = project_path/"runs"/f"bs{args.batch_size}_lr{args.learning_rate}_wd{args.weight_decay}_{random_hash}"
+    args.logdir = args.runpath / f"bs{args.batch_size}_lr{args.learning_rate}_wd{args.weight_decay}_{random_hash}"
 
     metric_dictionary = train(args)
 

@@ -160,6 +160,7 @@ def train(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument("--runpath", type=Path, required=True)
     parser.add_argument("--datapath", type=Path, required=True)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--learning_rate", type=float, required=True)
@@ -169,9 +170,8 @@ if __name__ == '__main__':
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 
-    project_path = Path(__file__).parents[2]
     random_hash = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    args.logdir = project_path/"runs"/f"bs{args.batch_size}_lr{args.learning_rate}_wd{args.weight_decay}_{random_hash}"
+    args.logdir = args.runpath / f"bs{args.batch_size}_lr{args.learning_rate}_wd{args.weight_decay}_{random_hash}"
 
     metric_dictionary = train(args)
 

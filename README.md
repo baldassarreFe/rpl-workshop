@@ -1,7 +1,9 @@
 # Workshop on GPU and slurm usage
 
 ## Initial setup
+
 Clone repository, create conda environment, and install package in editable mode:
+
 ```bash
 git clone https://github.com/baldassarreFe/rpl-workshop
 cd rpl-workshop
@@ -12,7 +14,9 @@ pip install --editable .
 ```
 
 ## Testing
+
 Install testing packages:
+
 ```bash
 cd rpl-workshop
 pip install --editable '.[test]'
@@ -20,6 +24,7 @@ pytest
 ```
 
 ## Training
+
 ```bash
 python -m workshop.train \
     --runpath "path/to/runs/folder" \
@@ -31,3 +36,14 @@ python -m workshop.train \
     --number_workers 2 \
     --device 'cuda'
 ```
+
+## Using wandb
+
+### Install and setup:
+
+```bash
+pip install wandb
+wandb login
+```
+
+### Runing sweep

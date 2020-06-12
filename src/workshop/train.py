@@ -80,7 +80,7 @@ def train(args):
         num_workers=args.number_workers)
 
     # Model
-    model = BirdNet(num_classes=dataset_tr.number_classes).to(args.device)
+    model = BirdNet(num_classes=20).to(args.device)
 
     # Optimizer
     optimizer = Adam(

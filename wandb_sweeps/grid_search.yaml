@@ -1,0 +1,26 @@
+name:
+  simple grid search
+program: workshop.train
+command:
+  - '-m'
+  - ${program}
+  - '--datapath'
+  - '/local_storage/datasets/CUB_20'
+  - '--number_epochs' 
+  - 20
+  - '--number_workers' 
+  - 2 
+  - '--device' 
+  - 'cuda'
+  - ${args}
+method: grid
+metric:
+  name: validation/loss
+  goal: minimize
+parameters:
+  batch_size:
+    values: [32, 64]
+  learning_rate:
+    values: [.001, .01]
+  weight_decay:
+    values: [.001, .00001]

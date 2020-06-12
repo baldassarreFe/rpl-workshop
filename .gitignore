@@ -71,3 +71,5 @@ env.bak/
 venv.bak/
 
 .vscode/settings.json
+wandb/
+slurm_logs/

@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import torch
 import tqdm
 from time import time
-from torch.utils.tensorboard import SummaryWriter
+import wandb
 
 from workshop.model import BirdNet
 import pyaml
@@ -46,8 +46,7 @@ class AverageMeter(object):
 
 
 def train(args):
-    writer = SummaryWriter(log_dir=args.logdir)
-
+    wandb.init(project="rpl-workshop")
     # Datasets
     dataset_tr = CUBDataset(
         root=args.datapath,
@@ -91,7 +90,7 @@ def train(args):
     # Meters
     meter_loss = AverageMeter()
     meter_accuracy = AverageMeter()
-    train_accuracy, train_loss, val_accuracy, val_loss = 0,0,0,0
+    train_accuracy, train_loss, val_accuracy, val_loss = 0, 0, 0, 0
 
     epoch_bar = tqdm.trange(args.number_epochs, desc='Epoch')
     for epoch in epoch_bar:
@@ -118,13 +117,10 @@ def train(args):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            # batch_bar.set_postfix({'loss': loss.item()})
 
         train_accuracy, train_loss = meter_accuracy.get_average(), meter_loss.get_average()
         epoch_bar.set_postfix({"loss": train_loss,
                                "accuracy": train_accuracy})
-        writer.add_scalar("/train/loss", train_loss, epoch)
-        writer.add_scalar("/train/accuracy", train_accuracy, epoch)
 
         # Validation
         model.eval()
@@ -149,18 +145,21 @@ def train(args):
 
         epoch_bar.set_postfix({"loss": val_loss,
                                "accuracy": val_accuracy})
-        writer.add_scalar("/validation/loss", val_loss, epoch)
-        writer.add_scalar("/validation/accuracy", val_accuracy, epoch)
-        writer.add_scalar("time_per_epoch", epoch_time, epoch)
+        wandb.log({
+            "train/loss": train_loss,
+            "train/accuracy": train_accuracy,
+            "validation/loss": val_loss,
+            "validation/accuracy": val_accuracy,
+            "time_per_epoch": epoch_time,
+            "epoch": epoch
+        })
 
-    torch.save(model.classifier.state_dict(), str(args.logdir / "final_model.pt"))
     return {"train": {"accuracy": train_accuracy, "loss": train_loss},
             "validation": {"accuracy": val_accuracy, "loss": val_loss}}
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--runpath", type=Path, required=True)
     parser.add_argument("--datapath", type=Path, required=True)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--learning_rate", type=float, required=True)
@@ -170,13 +169,11 @@ if __name__ == '__main__':
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 
-    random_hash = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    args.logdir = args.runpath / f"bs{args.batch_size}_lr{args.learning_rate}_wd{args.weight_decay}_{random_hash}"
+    random_hash = ''.join(random.choices(
+        string.ascii_uppercase + string.digits, k=10))
 
     metric_dictionary = train(args)
 
     config = vars(args)
     final_log_dictionary = {"config": config,
                             "results": metric_dictionary}
-    with open(args.logdir/"final_results.yaml", "w") as outfile:
-        pyaml.dump(final_log_dictionary, outfile)

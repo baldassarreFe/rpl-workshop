@@ -19,7 +19,7 @@
 # - \$(date)         is evaluated when the job starts, therefore
 #                    you can run commands on the node
 
-RUNS_PATH="${HOME}/Desktop/rpl-workshop/runs"
+RUNS_PATH="${HOME}/rpl-workshop/runs"
 DATA_PATH="/local_storage/datasets/CUB_20"
 RUN_CONFIG_PREFIX="array.$(date +'%F_%T.%N')"
 SLURM_MAX_TASKS=2
@@ -34,14 +34,14 @@ let "SLURM_ARRAY_TASK_ID++"
 
 cat << HERE > "${RUNS_PATH}/queue/${RUN_CONFIG_PREFIX}.${SLURM_ARRAY_TASK_ID}.yaml"
 paths:
-    runs: "${RUNS_PATH}"
-    data: "${DATA_PATH}"
+    runs: ${RUNS_PATH}
+    data: ${DATA_PATH}
 dataloader:
     number_workers: 2
-    batch_size: "${batch_size}"
+    batch_size: ${batch_size}
 optimizer:
-    learning_rate: "${learning_rate}"
-    weight_decay: "${weight_decay}"
+    learning_rate: ${learning_rate}
+    weight_decay: ${weight_decay}
     number_epochs: 20
 session:
     device: cuda
@@ -53,7 +53,7 @@ done
 
 sbatch << HERE
 #!/usr/bin/env bash
-#SBATCH --output="${RUNS_PATH}/%A_a_slurm.out"
+#SBATCH --output="${RUNS_PATH}/%A_%a_slurm.out"
 #SBATCH --error="${RUNS_PATH}/%A_%a_slurm.err"
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user="${USER}@kth.se"

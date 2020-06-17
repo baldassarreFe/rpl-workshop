@@ -15,14 +15,14 @@ def parse_yaml():
         config = pyaml.safe_load(f)
     
     return argparse.Namespace(
-        "runpath"=Path(config["paths"]["runs"]),
-        "datapath"=Path(config["paths"]["data"]),
-        "batch_size"=config["dataloader"]["batch_size"],
-        "learning_rate"=config["optimizer"]["learning_rate"],
-        "weight_decay"=config["optimizer"]["weight_decay"],
-        "number_epochs"=config["optimizer"]["number_epochs"],
-        "number_workers"=config["dataloader"]["number_workers"],
-        "device"=config["session"].get("device", "cpu")
+        runpath=Path(config["paths"]["runs"]),
+        datapath=Path(config["paths"]["data"]),
+        batch_size=config["dataloader"]["batch_size"],
+        learning_rate=config["optimizer"]["learning_rate"],
+        weight_decay=config["optimizer"]["weight_decay"],
+        number_epochs=config["optimizer"]["number_epochs"],
+        number_workers=config["dataloader"]["number_workers"],
+        device=config["session"].get("device", "cpu")
     )
     
 

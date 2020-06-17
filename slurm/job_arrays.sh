@@ -64,7 +64,7 @@ sbatch << HERE
 #SBATCH --array=1-${SLURM_ARRAY_TASK_ID}%${SLURM_MAX_TASKS}
 
 # Check job environment
-echo "JOB: \${SLURM_JOB_ID}"
+echo "JOB: \${SLURM_ARRAY_JOB_ID}"
 echo "TASK: \${SLURM_ARRAY_TASK_ID}"
 echo "HOST: \$(hostname)"
 echo "SUBMITTED: $(date)"

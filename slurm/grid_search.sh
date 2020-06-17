@@ -3,7 +3,7 @@
 # Submit a sbatch job without a physical .sbatch file using a HERE document.
 # https://en.wikipedia.org/wiki/Here_document
 #
-# Variables and commands work like this:
+# Variables and commands in the HERE document work like this:
 # - ${RUNS_PATH}     is evaluated *now* and takes the value 
 #                    from the current shell (as defined below),
 #                    it's useful to pass paths and thyperparameters

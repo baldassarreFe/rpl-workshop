@@ -157,8 +157,7 @@ def train(args):
     return {"train": {"accuracy": train_accuracy, "loss": train_loss},
             "validation": {"accuracy": val_accuracy, "loss": val_loss}}
 
-
-if __name__ == '__main__':
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--runpath", type=Path, required=True)
     parser.add_argument("--datapath", type=Path, required=True)
@@ -168,8 +167,9 @@ if __name__ == '__main__':
     parser.add_argument("--number_epochs", type=int, required=True)
     parser.add_argument("--number_workers", type=int, required=True)
     parser.add_argument("--device", type=str, default="cpu")
-    args = parser.parse_args()
+    return parser.parse_args()
 
+def main(args):
     random_hash = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
     args.logdir = args.runpath / f"bs{args.batch_size}_lr{args.learning_rate}_wd{args.weight_decay}_{random_hash}"
 
@@ -180,3 +180,9 @@ if __name__ == '__main__':
                             "results": metric_dictionary}
     with open(args.logdir/"final_results.yaml", "w") as outfile:
         pyaml.dump(final_log_dictionary, outfile)
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    main(args)
+ 

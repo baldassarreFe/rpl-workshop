@@ -42,8 +42,18 @@ python -m workshop.train \
 ### Install and setup:
 
 ```bash
+conda activate workshop
 pip install wandb
 wandb login
 ```
 
 ### Runing sweep
+Start the sweep:
+```bash
+wandb sweep wandb_sweeps/grid_search.yaml
+```
+
+Start a slurm job array with sweep id returned from the command above:
+```bach
+sbatch --export="wandb_sweep_id=vlali/rpl-workshop/17ygtroh" --constrain gondor --array 1-8%2 slurm/wandb_agent.sbatch
+```

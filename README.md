@@ -11,14 +11,6 @@ conda activate workshop
 pip install --editable .
 ```
 
-## Testing
-Install testing packages:
-```bash
-cd rpl-workshop
-pip install --editable '.[test]'
-pytest
-```
-
 ## Training
 ```bash
 python -m workshop.train \

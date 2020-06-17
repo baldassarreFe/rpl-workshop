@@ -9,7 +9,7 @@ def parse_yaml():
     # Ideally one would use the yaml dict directly in the training code.
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("yaml_config", type=Path, required=True)
+    parser.add_argument("yaml_config", type=Path)
     args = parser.parse_args()
     with open(args.yaml_config) as f:
         config = pyaml.safe_load(f)

@@ -1,4 +1,4 @@
-import pyaml
+import yaml
 import argparse
 from pathlib import Path
 
@@ -12,7 +12,7 @@ def parse_yaml():
     parser.add_argument("yaml_config", type=Path)
     args = parser.parse_args()
     with open(args.yaml_config) as f:
-        config = pyaml.safe_load(f)
+        config = yaml.safe_load(f)
     
     return argparse.Namespace(
         runpath=Path(config["paths"]["runs"]),

@@ -1,8 +1,8 @@
 name:
   simple grid search
-program: workshop.train
+program: "src/workshop/train.py"
 command:
-  - '-m'
+  - python
   - ${program}
   - '--datapath'
   - '/local_storage/datasets/CUB_20'
@@ -24,3 +24,4 @@ parameters:
     values: [.001, .01]
   weight_decay:
     values: [.001, .00001]
+

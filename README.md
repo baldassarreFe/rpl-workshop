@@ -1,7 +1,7 @@
 # GPU and SLURM Workshop
 
 <p align="center">
-  <a href="hhttps://docs.conda.io/en/latest/miniconda.html"><img alt="Miniconda" src="https://img.shields.io/badge/-Conda-brightgreen?logo=Anaconda&logoColor=white"></a>
+  <a href="https://docs.conda.io/en/latest/miniconda.html"><img alt="Miniconda" src="https://img.shields.io/badge/-Conda-brightgreen?logo=Anaconda&logoColor=white"></a>
   <a href="https://docs.google.com/presentation/d/1mFh92Kwmsc6Cm0RXQH_WxfT7-FtSTtiB7ZWanQ5Gvwg"><img alt="Slides" src="https://img.shields.io/badge/-Slides-yellow?logo=Read-the-docs&logoColor=white"></a>
   <a href="https://gits-15.sys.kth.se/rpl-gpus/wiki/wiki"><img alt="Wiki" src="https://img.shields.io/badge/-Wiki-blue?logo=github"></a>
 </p>

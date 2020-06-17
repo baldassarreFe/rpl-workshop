@@ -41,10 +41,10 @@ sbatch slurm/single_job.sbatch
 
 Grid search using environment variables:
 ```bash
-sbatch slurm/grid_search.sh
+./slurm/grid_search.sh
 ```
 
 Grid search using job arrays:
 ```bash
-sbatch slurm/grid_search.sh
+./slurm/grid_search.sh
 ```

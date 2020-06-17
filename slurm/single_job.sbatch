@@ -8,11 +8,18 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=2GB
 
+# Check job environment
+echo "JOB:  ${SLURM_JOB_ID}"
+echo "TASK: ${SLURM_ARRAY_TASK_ID}"
+echo "HOST: $(hostname)"
+echo ""
+nvidia-smi
+
+# Activate conda
 source "${HOME}/miniconda3/etc/profile.d/conda.sh"
 conda activate workshop
 
-nvidia-smi
-
+# Train
 SOURCE_PATH="${HOME}/rpl-workshop"
 RUNS_PATH="${HOME}/rpl-workshop/runs"
 DATA_PATH="/local_storage/datasets/CUB_20"
